@@ -25,6 +25,8 @@
         "build.zig.zon",
         "cmd",
         "deps",
+        "generated",
+        "overlay",
         "src",
         "LICENSE",
         "README.md",
