@@ -1,0 +1,949 @@
+.{
+    .name = "zig",
+    .description =
+    \\Zig is a general-purpose programming language and toolchain
+    \\for maintaining robust, optimal and reusable software
+    ,
+    .note =
+    \\Supported file types:
+    \\                   .zig - Zig source code
+    \\                     .o - ELF object file
+    \\                     .o - Mach-O (macOS) object file
+    \\                     .o - WebAssembly object file
+    \\                   .obj - COFF (Windows) object file
+    \\                   .lib - COFF (Windows) static library
+    \\                     .a - ELF static library
+    \\                     .a - Mach-O (macOS) static library
+    \\                     .a - WebAssembly static library
+    \\                    .so - ELF shared object (dynamic link)
+    \\                   .dll - Windows Dynamic Link Library
+    \\                 .dylib - Mach-O (macOS) dynamic library
+    \\                   .tbd - (macOS) text-based dylib definition
+    \\                     .s - Target-specific assembly source code
+    \\                     .S - Assembly with C preprocessor (requires LLVM extensions)
+    \\                     .c - C source code (requires LLVM extensions)
+    \\  .cxx .cc .C .cpp .c++ - C++ source code (requires LLVM extensions)
+    \\                     .m - Objective-C source code (requires LLVM extensions)
+    \\                    .mm - Objective-C++ source code (requires LLVM extensions)
+    \\                    .bc - LLVM IR Module (requires LLVM extensions)
+    ,
+    .options = .{
+        // General Options:
+        .{
+            .long = "color",
+            .type = "Color",
+            .default = .auto,
+            .description = "Enable or disable colored error messages",
+        },
+        .{
+            .short = 'j',
+            .long = "jobs",
+            .type = "?u8",
+            .description = "Limit concurrent jobs (otherwise, using all CPU cores)",
+        },
+        .{
+            .long = "emit-bin",
+            .type = "?string",
+            .description = "(default) Output machine code to binary file",
+            .with_no = "Do not",
+        },
+        .{
+            .long = "emit-asm",
+            .type = "?string",
+            .description = "Output assembly code to .s file",
+            .with_no = "(default) Do not output",
+        },
+        .{
+            .long = "emit-llvm-ir",
+            .type = "?string",
+            .description = "Output optimized LLVM IR to .ll file (requires LLVM extensions)",
+            .with_no = "(default) Do not output",
+        },
+        .{
+            .long = "emit-llvm-bc",
+            .type = "?string",
+            .description = "Output optimized LLVM Bitcode to .bc file (requires LLVM extensions)",
+            .with_no = "(default) Do not output",
+        },
+        .{
+            .long = "emit-h",
+            .type = "?string",
+            .description = "Output C header to .h file",
+            .with_no = "(default) Do not output",
+        },
+        .{
+            .long = "emit-docs",
+            .type = "?string",
+            .description = "Output HTML documentation to directory",
+            .with_no = "(default) Do not output",
+        },
+        .{
+            .long = "emit-implib",
+            .type = "?string",
+            .description = "(default) Output Import Library to .lib file when building Windows DLL",
+            .with_no = "Do not",
+        },
+        .{
+            .long = "cache-dir",
+            .type = "?string",
+            .description = "Override local cache directory path",
+        },
+        .{
+            .long = "global-cache-dir",
+            .type = "?string",
+            .description = "Override global cache directory path",
+        },
+        .{
+            .long = "zig-lib-dir",
+            .type = "?string",
+            .description = "Override Zig installation's lib directory path",
+        },
+        // Global Compile Options:
+        .{
+            .short = 'n',
+            .long = "name",
+            .type = "?string",
+            .description = "Compilation unit name (not a file path)",
+        },
+        .{
+            .short = 'c',
+            .long = "libc",
+            .type = "?string",
+            .description = "Path to file with libc paths",
+        },
+        .{
+            .short = 'x',
+            .long = "ext",
+            .type = "?string",
+            .description = "Extension of subsequent input source files",
+        },
+        .{
+            .short = 'd',
+            .long = "dep",
+            .type = "string",
+            .description = "Add entries to next module's import table",
+            .capacity = 64,
+        },
+        .{
+            .short = 'm',
+            .long = "mod",
+            .type = "string",
+            .description = "Create module from source file based on current per-module settings",
+            .note =
+            \\-m [name][=src]
+            \\The first module is the main module.
+            \\"std" can be configured by omitting [=src].
+            \\After this argument, per-module settings are reset.
+            ,
+            .capacity = 64,
+        },
+        .{
+            .short = 'e',
+            .long = "error-limit",
+            .type = "?u8",
+            .description = "Set maximum number of distinct error values",
+        },
+        .{
+            .short = 'r',
+            .long = "reference-trace",
+            .type = "?u8",
+            .description = "Enable reference trace with specified number of lines per compile error",
+            .with_no = "Disable",
+        },
+        .{
+            .short = 'w',
+            .long = "exec-model",
+            .type = "?string",
+            .description = "WASI execution model",
+        },
+        // Per-Module Compile Options:
+        .{
+            .short = 'T',
+            .long = "target",
+            .type = "?string",
+            .description = "Target: <arch><sub>-<os>-<abi> (otherwise, using native target)",
+        },
+        .{
+            .short = 'O',
+            .long = "optimize",
+            .type = "OptimizeMode",
+            .default = .Debug,
+            .description = "Optimization mode",
+        },
+        .{
+            .short = 'F',
+            .long = "object-format",
+            .type = "?ObjectFormat",
+            .description = "Override target object file format",
+        },
+        .{
+            .short = 'C',
+            .long = "cpu",
+            .type = "?string",
+            .description = "Override target CPU and feature set",
+        },
+        .{
+            .short = 'M',
+            .long = "code-model",
+            .type = "CodeModel",
+            .default = .default,
+            .description = "Limit range of code and data virtual addresses",
+        },
+        .{
+            .short = 'I',
+            .long = "include",
+            .type = "?string",
+            .description = "Add directory to include search path",
+        },
+        .{
+            .long = "iafter",
+            .type = "?string",
+            .description = "Add directory to AFTER include search path",
+        },
+        .{
+            .long = "isystem",
+            .type = "?string",
+            .description = "Add directory to SYSTEM include search path",
+        },
+        .{
+            .short = 'D',
+            .long = "define",
+            .type = "?string",
+            .description = "Define C [macro] to [value]: [macro]=[value] (1 if =[value] omitted)",
+        },
+        .{
+            .long = "cflags",
+            .type = "string",
+            .description = "Set extra flags for the next positional C source files",
+            .capacity = 64,
+        },
+        .{
+            .long = "rcflags",
+            .type = "string",
+            .description = "Set extra flags for the next positional .rc source files",
+            .capacity = 64,
+        },
+        .{
+            .long = "rcincludes",
+            .type = "?RcIncludes",
+            .description = "Set includes type to use when compiling .rc source files",
+        },
+        // Global Link Options:
+        .{
+            .long = "script",
+            .type = "?string",
+            .description = "Linker script .ld file path",
+        },
+        .{
+            .long = "version-script",
+            .type = "?string",
+            .description = "Version script .map file path",
+        },
+        .{
+            .long = "dynamic-linker",
+            .type = "?string",
+            .description = "Dynamic linker path (usually ld.so)",
+        },
+        .{
+            .long = "sysroot",
+            .type = "?string",
+            .description = "System root directory path (usually /)",
+        },
+        .{
+            .long = "version",
+            .type = "?string",
+            .description = "Dynamic library semantic version",
+        },
+        .{
+            .long = "entry-name",
+            .type = "?string",
+            .description = "Override entry point symbol name",
+        },
+        .{
+            .long = "force-defined",
+            .type = "?string",
+            .description = "Force symbol name to be defined for linking to succeed",
+        },
+        .{ .long = "so-name", .type = "?string", .description = "Override SONAME value", .with_no = "Disable" },
+        .{
+            .long = "build-id",
+            .type = "BuildId",
+            .default = .none,
+            .description = "Coordinate stripped binaries with debug symbols via '.note.gnu.build-id' section",
+        },
+        .{
+            .long = "build-id-num",
+            .type = "?u32",
+            .description = "Build ID number",
+            .excludes = .{
+                "build-id",
+            },
+        },
+        .{
+            .short = 'z',
+            .long = "link-ext-flags",
+            .type = "string",
+            .description = "Set linker extension flags",
+            .note =
+            \\Values:
+            \\  nodelete                     Indicate that object cannot be deleted from a process
+            \\  notext                       Permit read-only relocations in read-only segments
+            \\  defs                         Force a fatal error if any undefined symbols remain
+            \\  undefs                       Reverse of -z defs
+            \\  origin                       Indicate that object must have its origin processed
+            \\  nocopyreloc                  Disable creation of copy relocations
+            \\  now                          (default) Force all relocations to be processed on load
+            \\  lazy                         Don't force all relocations to be processed on load
+            \\  relro                        (default) Force all relocations to be read-only after processing
+            \\  norelro                      Don't force all relocations to be read-only after processing
+            \\  common-page-size=[bytes]     Set common page size for ELF binaries
+            \\  max-page-size=[bytes]        Set max page size for ELF binaries
+            ,
+            .capacity = 12,
+        },
+        .{
+            .long = "compress-debug-sections",
+            .type = "CompressDebugSections",
+            .default = .none,
+            .description = "Debug section compression settings",
+        },
+        .{
+            .long = "sort-section",
+            .type = "?string",
+            .description = "Sort wildcard section patterns by 'name' or 'alignment'",
+        },
+        .{
+            .long = "subsystem",
+            .type = "?string",
+            .description = "(Windows) /SUBSYSTEM:<subsystem> to linker path",
+        },
+        .{
+            .long = "stack",
+            .type = "?usize",
+            .description = "Override default stack size",
+        },
+        .{
+            .long = "image-base",
+            .type = "?usize",
+            .description = "Set base address for executable image",
+        },
+        .{
+            .long = "install-name",
+            .type = "?string",
+            .description = "(Darwin) Add dylib's install name",
+        },
+        .{
+            .long = "entitlements",
+            .type = "?string",
+            .description = "(Darwin) Add path to entitlements file for embedding in code signature",
+        },
+        .{
+            .long = "pagezero-size",
+            .type = "?usize",
+            .description = "(Darwin) Size of __PAGEZERO segment",
+        },
+        .{
+            .long = "headerpad",
+            .type = "?usize",
+            .description = "(Darwin) Set minimum space for future expansion of load commands",
+        },
+        .{
+            .long = "initial-memory",
+            .type = "?usize",
+            .description = "(WebAssembly) Initial size of linear memory",
+        },
+        .{
+            .long = "max-memory",
+            .type = "?usize",
+            .description = "(WebAssembly) Maximum size of linear memory",
+        },
+        .{
+            .long = "global-base",
+            .type = "?usize",
+            .description = "(WebAssembly) Where to start to place global data",
+        },
+        // Debug Options:
+        .{
+            .long = "opt-bisect-limit",
+            .type = "?u8",
+            .description = "Only run first number of LLVM optimization passes",
+        },
+        .{
+            .long = "verbose-llvm-ir",
+            .type = "?string",
+            .description = "Enable compiler debug output for unoptimized LLVM IR to file",
+        },
+        .{
+            .long = "verbose-llvm-bc",
+            .type = "?string",
+            .description = "Enable compiler debug output for unoptimized LLVM Bitcode to file",
+        },
+        .{
+            .long = "debug-log",
+            .type = "?string",
+            .description = "Enable printing debug/info log messages for scope",
+        },
+    },
+    .flags = .{
+        // General Flags:
+        .{
+            .short = 'i',
+            .long = "incremental",
+            .description = "Enable incremental compilation",
+            .with_no = "Disable",
+        },
+        .{
+            .short = 's',
+            .long = "show-builtin",
+            .description = "Print source of @import(\"builtin\")",
+        },
+        // Global Compile Flags:
+        .{
+            .long = "llvm",
+            .description = "Ensure using LLVM as codegen backend",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "libllvm",
+            .description = "Ensure using LLVM API in codegen backend",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "clang",
+            .description = "Ensure using Clang as C/C++ compilation backend",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "pie",
+            .description = "Enable Position Independent Executable mode",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "lto",
+            .description = "Enable Link Time Optimization mode (requires LLVM extensions)",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "dll-export-fns",
+            .description = "Enable marking exported functions as Windows DLL exports",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "builtin",
+            .description = "Enable implicit builtin knowledge of functions",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "function-sections",
+            .description = "Separate functions",
+            .with_no = "Colocate",
+        },
+        .{
+            .long = "data-sections",
+            .description = "Separate data",
+            .with_no = "Colocate",
+        },
+        .{
+            .long = "formatted-panics",
+            .description = "Enable formatted safety panics",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "structured-cfg",
+            .description = "Enable structured control flow graph for SPIR-V kernels",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "unicode-model",
+            .description = "Windows entry point (wmain/wWinMain)",
+        },
+        // Global Link Flags:
+        .{
+            .long = "entry",
+            .description = "Enable entry point (with default symbol name)",
+            .with_no = "Disable",
+            .excludes = .{"entry-name"},
+        },
+        .{
+            .long = "undefined-version",
+            .description = "Allow version scripts to refer to undefined symbols",
+            .with_no = "(default) Disallow",
+        },
+        .{
+            .long = "new-dtags",
+            .description = "Enable new behavior for dynamic tags (RUNPATH)",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "lld",
+            .description = "Ensure using LLD as linker",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "compiler-rt",
+            .description = "Ensure including compiler-rt symbols in output",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "ubsan-rt",
+            .description = "Ensure including ubsan-rt symbols in output",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "rdynamic",
+            .description = "Add all symbols to dynamic symbol table",
+        },
+        .{
+            .long = "each-lib-rpath",
+            .description = "Ensure adding rpath for each used dynamic library",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "allow-shlib-undefined",
+            .description = "Allow undefined symbols in shared libraries",
+            .with_no = "Disallow",
+        },
+        .{
+            .long = "allow-so-scripts",
+            .description = "Allow .so files to be GNU ld scripts",
+            .with_no = "Disallow",
+        },
+        .{
+            .long = "eh-frame-hdr",
+            .description = "Enable C++ exception handling by passing --eh-frame-hdr to linker",
+            .with_no = "Disable",
+        },
+        .{
+            .long = "emit-relocs",
+            .description = "Enable output of relocation sections for post build tools",
+        },
+        .{
+            .long = "dynamic",
+            .description = "Ensure output is dynamically linked",
+        },
+        .{
+            .long = "static",
+            .description = "Ensure output is statically linked",
+        },
+        .{
+            .long = "bind-symbolic",
+            .description = "Bind global references locally",
+        },
+        .{
+            .long = "gc-sections",
+            .description = "Ensure removal of functions and data that are unreachable by entry point or exported symbols",
+            .with_no = "Prevent",
+        },
+        .{
+            .long = "headerpad-max-install-names",
+            .description = "(Darwin) Set enough space as if all paths were MAXPATHLEN",
+        },
+        .{
+            .long = "dead-strip",
+            .description = "(Darwin) Remove functions and data that are unreachable by entry point or exported symbols",
+        },
+        .{
+            .long = "dead-strip-dylibs",
+            .description = "(Darwin) Remove dylibs that are unreachable by entry point or exported symbols",
+        },
+        .{
+            .long = "objc",
+            .description = "(Darwin) Ensure loading all members of static archives that implement Objective-C class or category",
+        },
+        .{
+            .long = "import-memory",
+            .description = "(WebAssembly) Import memory from environment",
+            .with_no = "(WebAssembly) (default) Export",
+        },
+        .{
+            .long = "import-symbols",
+            .description = "(WebAssembly) Import missing symbols from host environment",
+        },
+        .{
+            .long = "import-table",
+            .description = "(WebAssembly) Import function table from host environment",
+            .with_no = "(WebAssembly) Export",
+        },
+        .{
+            .long = "shared-memory",
+            .description = "(WebAssembly) Use shared linear memory",
+        },
+        // Debug Flags:
+        .{
+            .long = "time-report",
+            .description = "(Debug) Print timing diagnostics",
+        },
+        .{
+            .long = "stack-report",
+            .description = "(Debug) Print stack size diagnostics",
+        },
+        .{
+            .long = "verbose-link",
+            .description = "(Debug) Display linker invocations",
+        },
+        .{
+            .long = "verbose-cc",
+            .description = "(Debug) Display C compiler invocations",
+        },
+        .{
+            .long = "verbose-air",
+            .description = "(Debug) Enable compiler debug output for Zig AIR",
+        },
+        .{
+            .long = "verbose-intern-pool",
+            .description = "(Debug) Enable compiler debug output for InternPool",
+        },
+        .{
+            .long = "verbose-generic-instances",
+            .description = "(Debug) Enable compiler debug output for generic instance generation",
+        },
+        .{
+            .long = "verbose-cimport",
+            .description = "(Debug) Enable compiler debug output for C imports",
+        },
+        .{
+            .long = "verbose-llvm-cpu-features",
+            .description = "(Debug) Enable compiler debug output for LLVM CPU features",
+        },
+        .{
+            .long = "debug-compile-errors",
+            .description = "(Debug) Enable compile error crashing with helpful diagnostics",
+        },
+        .{
+            .long = "debug-link-snapshot",
+            .description = "(Debug) Enable dumping of linker state in JSON format",
+        },
+        .{
+            .long = "debug-rt",
+            .description = "(Debug) Enable compiler runtime library debugging",
+        },
+    },
+    .subcommands = .{
+        // General Subcommands:
+        .{
+            .name = "build",
+            .description = "Build project from build.zig",
+        },
+
+        .{
+            .name = "fetch",
+            .description = "Copy package into global cache and print its hash",
+            .note =
+            \\Examples:
+            \\  zig fetch --save git+https://example.com/user/repo.git
+            \\  zig fetch --save https://example.com/user/repo/archive/refs/heads/main.tar.gz
+            ,
+            .options = .{
+                .{
+                    .short = 'n',
+                    .long = "save-name",
+                    .type = "string",
+                    .description = "Add fetched package to build.zig.zon with name",
+                },
+                .{
+                    .short = 'G',
+                    .long = "global-cache-dir",
+                    .type = "string",
+                    .description = "Override path to global cache directory",
+                },
+            },
+            .flags = .{
+                .{
+                    .short = 's',
+                    .long = "save",
+                    .description = "Add fetched package to build.zig.zon",
+                },
+                .{
+                    .short = 'x',
+                    .long = "exact",
+                    .description = "Store URL verbatim",
+                    .dependencies = .{
+                        "save",
+                        "save-name",
+                    },
+                },
+                .{
+                    .short = 'H',
+                    .long = "hash",
+                    .description = "Print verbose hash information for debugging",
+                },
+            },
+            .positionals = .{
+                .{
+                    .meta = .URL_OR_PATH,
+                    .type = "string",
+                    .description = "URL or local directory path",
+                    .note =
+                    \\URL must point to one of the following:
+                    \\  - Git bundle file containing package source
+                    \\  - Git HTTP package server (git+http / git+https)
+                    \\  - Tarball file (with or without compression) containing package source
+                    ,
+                },
+            },
+        },
+
+        .{
+            .name = "init",
+            .description = "Initialize package in the current directory",
+        },
+
+        .{
+            .name = "build-exe",
+            .description = "Create executable",
+            .positionals = .{
+                .{
+                    .meta = .FILE_PATHS,
+                    .type = "string",
+                    .description = "Root source file path or object file paths",
+                    .capacity = 64,
+                },
+            },
+        },
+
+        .{
+            .name = "build-lib",
+            .description = "Create library",
+            .positionals = .{
+                .{
+                    .meta = .FILE_PATHS,
+                    .type = "string",
+                    .description = "Root source file path or object file paths",
+                    .capacity = 64,
+                },
+            },
+        },
+
+        .{
+            .name = "build-obj",
+            .description = "Create object",
+            .positionals = .{
+                .{
+                    .meta = .FILE_PATHS,
+                    .type = "string",
+                    .description = "Root source file path or object file paths",
+                    .capacity = 64,
+                },
+            },
+        },
+
+        .{
+            .name = "test",
+            .description = "Create test",
+            .options = .{
+                .{
+                    .long = "filter",
+                    .type = "?string",
+                    .description = "Skip tests that do not match any filter",
+                },
+                .{
+                    .long = "name-prefix",
+                    .type = "?string",
+                    .description = "Add prefix to all test names",
+                },
+                .{
+                    .long = "cmd",
+                    .type = "?string",
+                    .description = "Specify test execution command one argument at a time",
+                },
+                .{
+                    .long = "runner",
+                    .type = "?string",
+                    .description = "Custom test runner source file path",
+                },
+            },
+            .flags = .{
+                .{
+                    .long = "bin-path",
+                    .description = "Append test binary path to test arguments",
+                },
+                .{
+                    .long = "evented-io",
+                    .description = "Run test in evented I/O mode",
+                },
+                .{
+                    .long = "only-bin",
+                    .description = "Compile test binary without running it",
+                },
+            },
+            .positionals = .{
+                .{
+                    .meta = .FILE_PATHS,
+                    .type = "string",
+                    .description = "Root source file path or object file paths",
+                    .capacity = 64,
+                },
+            },
+        },
+
+        .{
+            .name = "run",
+            .description = "Create and run executable",
+            .positionals = .{
+                .{
+                    .meta = .FILE_PATHS,
+                    .type = "string",
+                    .description = "Root source file path or object file paths",
+                    .capacity = 64,
+                },
+                .{
+                    .meta = .ARGS,
+                    .type = "string",
+                    .description = "Command-line arguments",
+                    .capacity = 64,
+                },
+            },
+        },
+
+        .{
+            .name = "ast-check",
+            .description = "Report AST compile errors, without target validation or type checking",
+            .options = .{
+                .{
+                    .short = 'i',
+                    .long = "in",
+                    .type = "string",
+                    .description = "Input file path (otherwise, using stdin)",
+                },
+                .{
+                    .short = 'c',
+                    .long = "color",
+                    .type = "Color",
+                    .default = .auto,
+                    .description = "Enable or disable colored error messages",
+                },
+            },
+            .flags = .{
+                .{
+                    .short = 'z',
+                    .long = "zon",
+                    .description = "Treat input file as ZON, regardless of file extension",
+                },
+                .{
+                    .short = 't',
+                    .long = "text",
+                    .description = "Output ZIR in text form to stdout for debugging",
+                },
+            },
+        },
+
+        .{
+            .name = "fmt",
+            .description = "Reformat Zig source into canonical form",
+        },
+
+        .{
+            .name = "reduce",
+            .description = "Minimize bug report",
+        },
+
+        .{
+            .name = "translate-c",
+            .description = "Convert C source to Zig source",
+            .positionals = .{
+                .{
+                    .meta = .FILE_PATH,
+                    .type = "string",
+                    .description = "C source file path",
+                },
+            },
+        },
+
+        .{
+            .name = "ar",
+            .description = "Use Zig as a drop-in archiver",
+        },
+
+        .{
+            .name = "cc",
+            .description = "Use Zig as a drop-in C compiler",
+        },
+
+        .{
+            .name = "c++",
+            .description = "Use Zig as a drop-in C++ compiler",
+        },
+
+        .{
+            .name = "dlltool",
+            .description = "Use Zig as a drop-in dlltool.exe",
+        },
+
+        .{
+            .name = "lib",
+            .description = "Use Zig as a drop-in lib.exe",
+        },
+
+        .{
+            .name = "ranlib",
+            .description = "Use Zig as a drop-in ranlib",
+        },
+
+        .{
+            .name = "objcopy",
+            .description = "Use Zig as a drop-in objcopy",
+        },
+
+        .{
+            .name = "rc",
+            .description = "Use Zig as a drop-in rc.exe",
+        },
+
+        .{
+            .name = "env",
+            .description = "Print lib path, std path, cache directory, and version",
+        },
+
+        .{
+            .name = "std",
+            .description = "View standard library documentation in a browser",
+        },
+
+        .{
+            .name = "libc",
+            .description = "Print or validate a native libc paths file",
+        },
+
+        .{
+            .name = "targets",
+            .description = "Print available compilation targets",
+        },
+
+        .{
+            .name = "detect-cpu",
+            .description = "Print host CPU name and feature set",
+            .flags = .{
+                .{
+                    .short = 'l',
+                    .long = "llvm",
+                    .description = "Use LLVM API",
+                },
+            },
+        },
+
+        .{
+            .name = "version",
+            .description = "Print semantic version number",
+        },
+
+        .{
+            .name = "zen",
+            .description = "Print Zen of Zig",
+        },
+        // Debug Subcommands:
+        .{
+            .name = "changelist",
+            .description = "(Debug) Compute mappings from old ZIR to new ZIR",
+        },
+
+        .{
+            .name = "dump-zir",
+            .description = "(Debug) Dump a file containing cached ZIR",
+        },
+
+        .{
+            .name = "llvm-ints",
+            .description = "(Debug) Dump a list of LLVMABIAlignmentOfType for all integers",
+        },
+    },
+}

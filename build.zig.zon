@@ -1,0 +1,31 @@
+.{
+    .name = .psbc,
+    .version = "0.1.0",
+    .fingerprint = 0x9fbc904e99882242, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.17.0-dev.1387+01b60634c",
+    .dependencies = .{
+        .freegnm = .{
+            .url = "git+https://github.com/lateleite/freegnm.git#d0fe672b7f013f2bcbcc70ba234fbbd29ac0f32a",
+            .hash = "freegnm-0.1.0-zGkH591YIwAIl8eTD7NxzmcDqGHyMCAO3Nj4367B6QXG",
+        },
+        .argzon = .{
+            .path = "deps/argzon",
+        },
+        .translate_c = .{
+            .url = "git+https://codeberg.org/ziglang/translate-c#3da873cacdd7e9190fe1cf40372ddf5387c970ea",
+            .hash = "translate_c-0.0.0-Q_BUWktLBwBO7VLbmrOKUcAMRtE5fmOxI35189X5XbJs",
+        },
+        .mesa = .{
+            .url = "https://archive.mesa3d.org/mesa-26.1.7.tar.xz",
+            .hash = "N-V-__8AAM8qKhaobU6Rm--zBDi_FmW5vSYSD2RGPhrV7sQE",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "cmd",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+}

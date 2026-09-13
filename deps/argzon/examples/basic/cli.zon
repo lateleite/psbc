@@ -1,0 +1,104 @@
+.{
+    // Command name (required)
+    .name = "command",
+    // Description (optional)
+    .description = "Command description",
+    // Note with additional multi-line information (optional)
+    .note =
+    \\Additional information
+    \\...
+    ,
+    // Named option parameters (optional)
+    .options = .{
+        .{
+            // Short name (optional)
+            .short = 'o',
+            // Long name (required)
+            .long = "option",
+            // Non-boolean primitive or user enum (required)
+            .type = "Mode",
+            // Default value of specified type, if ".type = ?..." then ".default = null" (optional)
+            .default = .zon,
+            // Description (optional)
+            .description = "Enable option",
+            // Note with additional multi-line information (optional)
+            .note =
+            \\Additional information
+            \\...
+            ,
+            // Accumulate non-nullable values into `_: std.ArrayList(<type>) = try .initCapacity(allocator, <capacity>);` (optional)
+            .capacity = 2,
+            // Generate opposite option as "--no-<long>...<with_no><description_after_first_word_without_parenthesis_blocks>",
+            // which either nulls the value or clears accumulated values (optional)
+            .with_no = "Disable",
+            // Depend on either one of other named parameters,
+            // for non-accumulated enum options possibly also providing space-separated values (optional)
+            .dependencies = .{
+                // "flag",
+            },
+            // Mutually exclude simultaneous usage of conflicting named parameters,
+            // for non-accumulated enum options possibly also providing space-separated values (optional)
+            .excludes = .{
+                // "flag",
+            },
+        },
+    },
+    // Named flag parameters (optional)
+    // Same as options but with ".type = bool" and ".default = false",
+    // "-h, --help" flag is reserved and handled automatically.
+    .flags = .{
+        .{
+            // Short name (optional)
+            .short = 'f',
+            // Long name (required)
+            .long = "flag",
+            // Description (optional)
+            .description = "Set flag",
+            // Note with additional multi-line information (optional)
+            .note =
+            \\Additional information
+            \\...
+            ,
+            // Count repetitions with `std.math.IntFittingRange(0, <capacity>)` (optional)
+            .capacity = 4,
+            // Generate opposite flag as "--no-<long>...<with_no><description_after_first_word_without_parenthesis_blocks>",
+            // which either unsets the flag or zeroes repetition count (optional)
+            .with_no = "Unset",
+            // Depend on either one of other named parameters,
+            // for non-accumulated enum options possibly also providing space-separated values (optional)
+            .dependencies = .{
+                // "option zon",
+            },
+            // Mutually exclude simultaneous usage of conflicting named parameters,
+            // for non-accumulated enum options possibly also providing space-separated values (optional)
+            .excludes = .{
+                // "option zon",
+            },
+        },
+    },
+    // Positional parameters (optional)
+    // Accumulated positional values are interrupted by " -- ".
+    .positionals = .{
+        .{
+            // Meta name tag, SCREAMING_SNAKE_CASE (required)
+            .meta = .POSITIONAL,
+            // Non-optional, non-boolean primitive or non-optional user enum (required)
+            .type = "string",
+            // Default value of specified type (optional)
+            .default = ".",
+            // Description (optional)
+            .description = "Positional description",
+            // Note with additional multi-line information (optional)
+            .note =
+            \\Additional information
+            \\...
+            ,
+            // Accumulate non-nullable values into `_: std.ArrayList(<type>) = try .initCapacity(allocator, <capacity>);` (optional)
+            .capacity = 4,
+        },
+    },
+    // Subcommands (optional)
+    .subcommands = .{
+        // Same as command.
+    },
+}

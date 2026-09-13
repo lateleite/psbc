@@ -1,0 +1,14 @@
+.{
+    .name = .argzon,
+    .version = "0.5.2",
+    .fingerprint = 0x4680d7f8e27b5e0a, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.16.0",
+    .paths = .{
+        "src/",
+        "examples/",
+        "build.zig",
+        "build.zig.zon",
+        "LICENSE",
+        "README.md",
+    },
+}
