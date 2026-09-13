@@ -24,6 +24,7 @@
         "build.zig",
         "build.zig.zon",
         "cmd",
+        "deps",
         "src",
         "LICENSE",
         "README.md",
